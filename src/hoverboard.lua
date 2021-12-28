@@ -18,7 +18,7 @@ function Hoverboard:on_activate()
 end
 
 function Hoverboard:attach_pilot(player)
-	player:set_attach(self.object, nil, {x = 0.5, y = 1, z = -3})
+	player:set_attach(self.object, nil, vector.new(0.5, 1, -3))
 	player_api.player_attached[player:get_player_name()] = true
 	minetest.after(0.2, function()
 		player_api.set_animation(player, "sit", 30)
@@ -31,8 +31,8 @@ function Hoverboard:detach_pilot()
 	self.pilot:set_detach()
 end
 
-function Hoverboard:on_detach_child(obj)
-	if obj == self.pilot then
+function Hoverboard:on_detach_child(object)
+	if object == self.pilot then
 		player_api.player_attached[self.pilot:get_player_name()] = false
 		player_api.set_animation(self.pilot, "stand", 30)
 
@@ -56,10 +56,11 @@ function Hoverboard:on_step(dtime)
 	end
 
 	local velocity = self.object:get_velocity()
-	local speed = vector.length(velocity)
+	local speed = velocity:length()
 
 	local MAX_SPEED = 20
 	local ACCELERATION = 15
+
 	local accelerate = self.pilot and self.pilot:get_player_control().up
 	if accelerate and speed < MAX_SPEED then
 		speed = speed + ACCELERATION * dtime
@@ -74,8 +75,8 @@ function Hoverboard:on_step(dtime)
 		speed = MAX_SPEED
 	end
 
-	velocity = {x = 0, y = 0, z = speed}
-	velocity = vector.rotate(velocity, self.object:get_rotation())
+	velocity = vector.new(0, 0, speed)
+	velocity = velocity:rotate(self.object:get_rotation())
 
 	self.object:set_velocity(velocity)
 
@@ -86,10 +87,10 @@ function Hoverboard:on_step(dtime)
 			amount = 100,
 			time = 0,
 			attached = self.object,
-			minpos = {x = 0, y = -0.09, z = -0.85},
-			maxpos = {x = 0, y = -0.09, z = -0.85},
-			minvel = {x = 1, y = 2, z = -5},
-			maxvel = {x = -1, y = -2, z = -10},
+			minpos = vector.new(0, -0.09, -0.85),
+			maxpos = vector.new(0, -0.09, -0.85),
+			minvel = vector.new(1, 2, -5),
+			maxvel = vector.new(-1, -2, -10),
 		})
 	end
 	if not accelerate and self.particle_spawner_id then
@@ -116,6 +117,15 @@ function Hoverboard:on_punch(player)
 end
 
 minetest.register_entity("hightech:hoverboard", Hoverboard)
+
+minetest.register_craft({
+	recipe = {
+		{"hightech:dark", "hightech:dark"},
+		{"hightech:dark", "hightech:dark"},
+		{"hightech:dark", "hightech:dark"},
+	},
+	output = "hightech:hoverboard",
+})
 
 minetest.register_craftitem("hightech:hoverboard", {
 	description = S("Hoverboard"),
